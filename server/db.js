@@ -1,4 +1,6 @@
 const pg = require('pg');
+const uuid = require('uuid');
+
 
 const client = new pg.Client(process.env.DATABASE_URL || 'postgres://localhost/acme_planner_db');
 
@@ -26,7 +28,40 @@ const createTables = async()=> {
     await client.query(SQL);
 };
 
+const createCustomer = async({ name })=> {
+    const SQL = `
+        INSERT INTO customers(id, name)
+        VALUES ($1, $2)
+        RETURNING *
+    `;
+    const response = await client.query(SQL, [uuid.v4(), name]);
+    return response.rows[0];
+};
+
+const createRestaurant = async({ name })=> {
+    const SQL = `
+        INSERT INTO restaurants(id, name)
+        VALUES ($1, $2)
+        RETURNING *
+    `;
+    const response = await client.query(SQL, [uuid.v4(), name]);
+    return response.rows[0];
+};
+
+const fetchCustomers = async()=> {
+    const SQL = `
+        SELECT *
+        FROM customers
+    `;
+    const response = await client.query(SQL);
+    return response.rows;
+};
+
 module.exports = {
     client,
-    createTables
+    createTables,
+    createCustomer,
+    createRestaurant,
+    fetchCustomers,
+    
 };
